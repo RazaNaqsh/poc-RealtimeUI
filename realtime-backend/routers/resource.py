@@ -13,5 +13,5 @@ def list_resources(db: Session = Depends(db.get_db)):
     return resource.get_resources(db)
 
 @router.post("/", response_model=schema.Resource)
-def create_resource(resource: schema.ResourceCreate, db: Session = Depends(db.get_db)):
-    return resource.create_resource(db, resource)
+def create_resource(data: schema.ResourceCreate, db: Session = Depends(db.get_db)):
+    return resource.create_resource(db, data)
