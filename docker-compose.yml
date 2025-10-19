@@ -6,6 +6,8 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
+    # volumes:
+    #   - ./realtime-backend:/app
     env_file:
       - .env
     depends_on:
@@ -38,4 +40,17 @@ services:
     depends_on:
       - db
     restart: always
+
+  frontend:
+    build: ./realtime-ui
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./realtime-ui:/app   # bind mount local folder to container
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: always
+
 

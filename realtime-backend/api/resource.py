@@ -2,7 +2,7 @@
 from sqlalchemy.orm import Session
 from ..utils import models, schema, sse
 import asyncio
-from ..utils.sse import queue
+
 
 
 def get_resources(db: Session):
@@ -13,5 +13,4 @@ def create_resource(db: Session, resource: schema.ResourceCreate):
     db.add(db_resource)
     db.commit()
     db.refresh(db_resource)
-    asyncio.create_task(queue.put({"id": db_resource.id, "name": db_resource.name}))
     return db_resource
