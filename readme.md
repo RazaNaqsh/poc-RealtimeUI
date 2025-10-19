@@ -1,10 +1,11 @@
-# Purpose of the applicatino
+# Purpose of the application
 
 The purpose of this application is to test SSE concept and implement it in a mini project using the following stack:
 - Nextjs
 - FastAPI
 - SQLalchemy
 - Postgres
+
 
 # Architecture of the application
 
