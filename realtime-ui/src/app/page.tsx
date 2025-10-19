@@ -1,103 +1,119 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+
+interface Resource {
+  id: number;
+  name: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [name, setName] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // SSE connection
+
+  useEffect(() => {
+  // Step 1: Fetch existing resources
+  const fetchResources = async () => {
+    const res = await fetch("http://localhost:8000/resources/");
+    const data = await res.json();
+    setResources(data); // populate table
+  };
+  fetchResources();
+
+  // Step 2: Set up SSE for live updates
+  const eventSource = new EventSource("http://localhost:8000/events");
+  eventSource.onmessage = (event) => {
+    const newResource: Resource = JSON.parse(event.data);
+    setResources((prev) => [newResource, ...prev]);
+  };
+
+  return () => eventSource.close();
+}, []);
+
+  // Submit new resource
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name) return;
+    await fetch("http://localhost:8000/resources/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    setName("");
+    setShowForm(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="text-3xl font-bold mb-4">SSE Resource Demo</h1>
+
+      <button
+        onClick={() => setShowForm(true)}
+        className="mb-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Add Resource
+      </button>
+
+      {/* Form Popup */}
+      {showForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white p-6 rounded shadow-md w-80">
+            <h2 className="text-xl font-semibold mb-4">New Resource</h2>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Resource name"
+                className="w-full mb-4 px-3 py-2 border rounded"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
+      {/* Resource Table */}
+      <div className="bg-white shadow rounded p-4">
+        <h2 className="text-2xl font-semibold mb-4">Resources</h2>
+        {resources.length === 0 ? (
+          <p className="text-gray-500">No resources yet</p>
+        ) : (
+          <table className="w-full text-left border">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="px-4 py-2 border">ID</th>
+                <th className="px-4 py-2 border">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resources.map((r) => (
+                <tr key={r.id} className="border-b">
+                  <td className="px-4 py-2 border">{r.id}</td>
+                  <td className="px-4 py-2 border">{r.name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
