@@ -17,4 +17,4 @@ async def create_resource(data: schema.ResourceCreate, db: Session = Depends(db.
     db_resource = resource.create_resource(db, data)
     await queue.put({"id": db_resource.id, "name": db_resource.name})  # await inside async route
     return db_resource
-    # asyncio.create_task(queue.put({"id": db_resource.id, "name": db_resource.name}))
+

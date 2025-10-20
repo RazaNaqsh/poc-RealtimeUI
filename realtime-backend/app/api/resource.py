@@ -1,8 +1,6 @@
 # app/crud.py
 from sqlalchemy.orm import Session
-from ..utils import models, schema, sse
-import asyncio
-
+from ..utils import models, schema
 
 
 def get_resources(db: Session):
